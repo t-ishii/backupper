@@ -1,0 +1,19 @@
+{
+  "name": "backupper",
+  "main": "./lib/backupper",
+  "version": "0.0.0",
+  "description": "backup for active text editor",
+  "keywords": [
+    "backup"
+  ],
+  "repository": "https://github.com/t-ishii/backupper.git",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "dependencies": {
+    "away": "^1.0.0",
+    "fs-plus": "^2.8.1",
+    "mkdirp": "^0.5.1"
+  }
+}
