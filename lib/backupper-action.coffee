@@ -20,7 +20,7 @@ class Action
     savePath = path.join(
       cfgPath,
       @editor.getPath().replace(
-        new RegExp(path.sep, 'g'),
+        new RegExp(path.sep.replace(/(\\)/g, '\\$1'), 'g'),
         '#'
       )
     )
@@ -61,7 +61,10 @@ class Action
     if @editor? and @editor.getPath()
 
       # ファイル名を取得 "/" を "#" に置き換えたもの
-      fileName = @editor.getPath().replace(new RegExp(path.sep, 'g'), '#')
+      fileName = @editor.getPath().replace(
+        new RegExp(path.sep.replace(/(\\)/g, '\\$1'), 'g'),
+        '#'
+      )
       # 取得先パスを作成
       tmpPath = path.join(
         atom.config.get('backupper.sevePath'),
