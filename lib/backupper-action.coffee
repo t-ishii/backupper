@@ -5,12 +5,19 @@ fs = require 'fs-plus'
 module.exports =
 class Action
 
+  # ファイル名禁止文字の変換処理
+  #
+  # @param {String} filePath
+  # @return {String} 変換後のファイル名
+  convertPath = (filePath) ->
+    filePath.replace /[\/\\:\*\?"\<\>\|]/g, '#'
+
   # バックアップ用パスの作成
   #
   # @param {String} cfgPath 保存先フォルダ情報
   # @return {String} savePath 保存パス
   createPath: (cfgPath=atom.config.get('backupper.sevePath')) ->
-
+    console.log convertPath 'c:\\hello\\world.com'
     # check dir
     if not fs.existsSync cfgPath
       # create dir
@@ -19,10 +26,7 @@ class Action
     # create /tmp/#project#file#path#name
     savePath = path.join(
       cfgPath,
-      @editor.getPath().replace(
-        new RegExp(path.sep.replace(/(\\)/g, '\\$1'), 'g'),
-        '#'
-      )
+      convertPath @editor.getPath()
     )
 
     savePath
@@ -61,10 +65,7 @@ class Action
     if @editor? and @editor.getPath()
 
       # ファイル名を取得 "/" を "#" に置き換えたもの
-      fileName = @editor.getPath().replace(
-        new RegExp(path.sep.replace(/(\\)/g, '\\$1'), 'g'),
-        '#'
-      )
+      fileName = convertPath @editor.getPath()
       # 取得先パスを作成
       tmpPath = path.join(
         atom.config.get('backupper.sevePath'),
