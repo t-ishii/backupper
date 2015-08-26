@@ -17,7 +17,7 @@ class Action
   # @param {String} cfgPath 保存先フォルダ情報
   # @return {String} savePath 保存パス
   createPath: (cfgPath=atom.config.get('backupper.sevePath')) ->
-    console.log convertPath 'c:\\hello\\world.com'
+
     # check dir
     if not fs.existsSync cfgPath
       # create dir
