@@ -1,6 +1,7 @@
 path = require 'path'
 mkdirp = require 'mkdirp'
 fs = require 'fs-plus'
+jschardet = require 'jschardet'
 
 module.exports =
 class Action
@@ -11,6 +12,15 @@ class Action
   # @return {String} 変換後のファイル名
   convertPath = (filePath) ->
     filePath.replace /[\/\\:\*\?"\<\>\|]/g, '#'
+
+  # エンコーディング取得処理
+  #
+  # @param {String} content ファイル内容
+  # @return {String} encoding エンコーディング
+  getEncoding = (content) ->
+    {encoding} = jschardet.detect content
+    encoding = 'utf8' if encoding is 'ascii'
+    encoding
 
   # バックアップ用パスの作成
   #
@@ -40,7 +50,11 @@ class Action
     ws.on 'drain', -> console.warn 'opened file.'
     ws.on 'error', (e) -> console.error e
 
-    ws.write @editor.getText(), @editor.getEncoding()
+    text = @editor.getText()
+
+    encoding = getEncoding text
+
+    ws.write text, encoding
 
     ws.close()
 
@@ -76,7 +90,10 @@ class Action
       if fs.isFileSync tmpPath
 
         try
-          buf = fs.readFileSync tmpPath, encoding: @editor.getEncoding()
+
+          encoding = getEncoding @editor.getText()
+
+          buf = fs.readFileSync tmpPath, encoding: encoding
           @editor.setText(buf.toString())
 
           # リカバ成功メッセージ
