@@ -101,7 +101,7 @@ class Action
             'backupper: recover file.'
           )
 
-        catch
+        catch e
           console.error e
 
       else
