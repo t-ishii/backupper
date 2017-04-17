@@ -1,6 +1,7 @@
 path = require 'path'
 mkdirp = require 'mkdirp'
 fs = require 'fs-plus'
+iconv = require 'iconv-lite'
 jschardet = require 'jschardet'
 
 module.exports =
@@ -15,10 +16,11 @@ class Action
 
   # エンコーディング取得処理
   #
-  # @param {String} content ファイル内容
+  # @param {Buffer} buffer ファイル内容
   # @return {String} encoding エンコーディング
-  getEncoding = (content) ->
-    {encoding} = jschardet.detect content
+  getEncoding = (buffer) ->
+    {encoding} = jschardet.detect(buffer) ? { encoding: null }
+    encoding = stripEncName(encoding) if encoding?
     encoding = 'utf8' if encoding is 'ascii'
     encoding
 
@@ -41,24 +43,27 @@ class Action
 
     savePath
 
+  # Strip symbols from encoding name
+  #
+  # @return {String}
+  stripEncName = (name) ->
+    name.toLowerCase().replace(/[^0-9a-z]|:\d{4}$/g, '')
+
   # バックアップファイルへ現在のファイルを書き出し
   #
   # @param {String} savePath 保存パス
   writeFile: (savePath) ->
-    ws = fs.createWriteStream savePath
 
-    ws.on 'drain', -> console.warn 'opened file.'
-    ws.on 'error', (e) -> console.error e
-
-    text = @editor.getText()
-
-    encoding = getEncoding text
-
-    ws.write text, encoding
-
-    ws.close()
-
-    console.log 'saved file: '+ savePath
+    fs.readFile @editor.getPath(), (error, buffer) =>
+      return if error? or not @editor?
+      encoding = getEncoding buffer
+      if iconv.encodingExists(encoding)
+        fs.writeFile(savePath, iconv.decode(buffer, encoding), encoding='utf8', (err) ->
+          if err?
+            console.error err
+          else
+            console.log 'saved file: '+ savePath
+        )
 
     return
 
@@ -91,15 +96,11 @@ class Action
 
         try
 
-          encoding = getEncoding @editor.getText()
-
-          buf = fs.readFileSync tmpPath, encoding: encoding
-          @editor.setText(buf.toString())
+          buf = fs.readFileSync tmpPath, encoding: 'utf8'
+          @editor.setText(buf)
 
           # リカバ成功メッセージ
-          atom.notifications.addSuccess(
-            'backupper: recover file.'
-          )
+          atom.notifications.addSuccess('backupper: recover file.')
 
         catch e
           console.error e
